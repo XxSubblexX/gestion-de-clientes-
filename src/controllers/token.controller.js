@@ -11,7 +11,7 @@ export const verificarToken = (req, res, next) => {
 
     // cortar el texto para obtener solo la cadena del token
     const token = authHeader.split(' ')[1];
-    const secretKey = process.env.JWT_SECRET || "iw213874y387edh3728hrf8q274rr89743trhy";
+    const secretKey = process.env.JWT_SECRET;
 
     // validar usando el callback nativo 
     jwt.verify(token, secretKey, (error, datosDecodificados) => {

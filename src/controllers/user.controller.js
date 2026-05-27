@@ -7,18 +7,18 @@ import jwt from "jsonwebtoken";
 export const sesionUsuario = async (req, res) => {
     // Saca el correo y la contraseña que envió el usuario
     const {correo, password} = req.body
-
+    console.log({correo, password})
     // Si falta escribir el correo o la contraseña, avisa que falta información
     if (!correo?.trim() || !password?.trim()) {
             return res.status(400).json({ message: "missing information" })
         }
 
     // Busca en la base de datos si existe alguien con ese correo
-    const { rows  } = await client.query("SELECT * FROM usuarios WHERE correo = $1", [correo])
+    const { rows } = await client.query("SELECT * FROM usuarios WHERE correo = $1", [correo])
     
     // Si no encontró a nadie con ese correo, da error de credenciales inválidas
     if (rows.length === 0) {
-            return res.status(401).json({ message: "invalid credentials" })
+            return res.status(401).json({ message: "correo invalido" })
         }
     
     // Guarda los datos del usuario encontrado
@@ -29,7 +29,7 @@ export const sesionUsuario = async (req, res) => {
         
         // Si las contraseñas no coinciden, da error
         if (!contraseñacorrecta) {
-            return res.status(401).json({ message: "invalid credentials" })
+            return res.status(401).json({ message: "contraseña invalida" })
         }
     
     // Guarda el ID y el nombre del usuario dentro del pase digital (token)
@@ -55,7 +55,7 @@ export const sesionUsuario = async (req, res) => {
 export const conseguirUsuarios = async (req, res) => {
     // Trae a todos los usuarios de la lista
     const {rows} = await client.query("SELECT * FROM usuarios");
-    console.log(rows);
+
     // Muestra la lista completa en la pantalla
     res.json(rows);
 }
@@ -93,7 +93,6 @@ export const añadirUsuario = async (req, res) => {
     // Guarda al nuevo usuario en la lista con su contraseña ya escondida
     const {rows} = await client.query("INSERT INTO usuarios (nombre, correo, password) VALUES ($1, $2, $3) RETURNING *", [nombre, correo, hash])
     
-    console.log(rows)
     // Confirma que el usuario fue creado con éxito
     res.status(201).send("añadiendo usuarios")
 }
@@ -116,7 +115,6 @@ export const actualizarUsuario = async (req, res) => {
     // Cambia los datos viejos por los nuevos en el usuario con ese ID
     const {rows} = await client.query("UPDATE usuarios SET nombre = $1, correo = $2, password = $3 WHERE id_usuario = $4", [nombre, correo, hash, id_usuario])
     
-    console.log(rows)
     // Confirma que el usuario fue actualizado
     res.send("actualizando usuario")
 }
@@ -129,8 +127,6 @@ export const borrarUsuario = async (req, res) => {
     // Borra al usuario que tenga ese ID de la lista
     const {rows, rowCount} = await client.query("DELETE FROM usuarios WHERE id_usuario = $1 RETURNING *", [id_usuario])
     
-    console.log(rows)
-
     // Si la cuenta de borrados es cero, significa que ese ID no existía
     if (rowCount === 0) {
         return res.status(404).json({message: "user not found"})
