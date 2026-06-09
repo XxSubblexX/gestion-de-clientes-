@@ -16,7 +16,7 @@ export const verificarToken = (req, res, next) => {
     // validar usando el callback nativo 
     jwt.verify(token, secretKey, (error, datosDecodificados) => {
         if (error) {
-            return res.status(403).json({ message: "Token inválido o expirado." });
+            return res.status(401).json({ message: "Token inválido o expirado." });
         }
 
         // si todo está bien, inyectar los datos en la petición y continuar
@@ -24,3 +24,4 @@ export const verificarToken = (req, res, next) => {
         next(); 
     });
 };
+ 

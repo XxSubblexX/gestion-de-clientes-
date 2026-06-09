@@ -21,7 +21,9 @@ export const añadirCliente = async (req, res) => {
     console.log(rows)
 
     // Confirma que el cliente fue añadido con éxito
-    res.status(201).send("añadiendo usuarios")
+    
+    
+    res.json(rows)
 }
 
 // VER TODOS LOS CLIENTES DE ESTE USUARIO
@@ -30,7 +32,7 @@ export const conseguirClientes = async (req, res) => {
     const idUsuarioLogueado = req.user.id;
     
     // Trae de la base de datos únicamente los clientes creados por este usuario
-    const {rows} = await client.query("SELECT * FROM clientes WHERE id_usuario = $1", [idUsuarioLogueado]);
+    const {rows} = await client.query("SELECT * FROM clientes WHERE id_usuario = $1 ORDER BY created_at DESC", [idUsuarioLogueado]);
     
     // Muestra la lista de sus clientes en la pantalla
     res.json(rows);
@@ -57,21 +59,16 @@ export const conseguirCliente = async (req, res) => {
 
 // ELIMINAR UN CLIENTE
 export const borrarCliente = async (req, res) => {
-    // Saca el ID del cliente que se quiere borrar desde el enlace (URL)
-    const {id_cliente} = req.params;
-    // Averigua quién está intentando borrarlo
-    const idUsuarioLogueado = req.user.id;
     
-    // Borra al cliente de la lista de forma permanente si coincide con el usuario logueado
-    const {rows, rowCount} = await client.query("DELETE FROM clientes WHERE id_cliente = $1 AND id_usuario = $2 RETURNING *", [id_cliente, idUsuarioLogueado]);
+    const {estado} = req.body;
+    const id_cliente = req.params.id_cliente;
+    const id_usuario = req.user.id;
+    console.log(estado, id_cliente, id_usuario)
+    const {rows} = await client.query("UPDATE clientes SET estado = $1 WHERE id_cliente = $2 AND id_usuario = $3 RETURNING *", [estado, id_cliente, id_usuario]);
 
-    // Si la cuenta de borrados es cero, significa que ese cliente no existía o no te pertenece
-    if (rowCount === 0) {
-        return res.status(404).json({message: "user not found"})
-    }
+    res.json(rows)
 
-    // Devuelve los datos del cliente que se eliminó
-    res.send(rows)
+   
 }
 
 // MODIFICAR UN CLIENTE

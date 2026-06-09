@@ -2,6 +2,7 @@ import { client } from "../db.js";
 import bcrypt from "bcryptjs";
 import { router } from "../routes/user.routes.js";
 import jwt from "jsonwebtoken";
+import generatePassword from "generate-password";
 
 // INICIAR SESIÓN (LOGIN)
 export const sesionUsuario = async (req, res) => {
@@ -35,7 +36,9 @@ export const sesionUsuario = async (req, res) => {
     // Guarda el ID y el nombre del usuario dentro del pase digital (token)
     const payload = { 
             id: usuario.id_usuario, 
-            nombre: usuario.nombre 
+            nombre: usuario.nombre,
+            rol: usuario.id_rol,
+            estado: usuario.estado
         };
 
     // Usa una clave secreta para asegurar que nadie altere el pase digital
@@ -47,14 +50,15 @@ export const sesionUsuario = async (req, res) => {
     // Responde que todo salió bien y entrega el pase digital
     res.json({ 
         message: "Login exitoso",
-        token 
+        token,
+        payload
     });
 }
 
 // VER TODOS LOS USUARIOS
 export const conseguirUsuarios = async (req, res) => {
     // Trae a todos los usuarios de la lista
-    const {rows} = await client.query("SELECT * FROM usuarios");
+    const {rows} = await client.query("SELECT id_usuario, nombre, correo, id_rol, estado FROM usuarios ORDER BY created_at DESC");
 
     // Muestra la lista completa en la pantalla
     res.json(rows);
@@ -66,7 +70,7 @@ export const conseguirUsuario = async (req, res) => {
     const {id_usuario} = req.params;
 
     // Busca al usuario que tenga exactamente ese ID
-    const {rows} = await client.query("SELECT * FROM usuarios WHERE id_usuario = $1", [id_usuario]);
+    const {rows} = await client.query("SELECT nombre, correo FROM usuarios WHERE id_usuario = $1", [id_usuario]);
     
     // Si no encontró a nadie, avisa que el usuario no existe
     if (rows.length === 0) {
@@ -74,27 +78,34 @@ export const conseguirUsuario = async (req, res) => {
     };
 
     // Si lo encontró, muestra su información
-    res.json(rows)
+    res.json(rows[0])
 }
 
 // CREAR UN NUEVO USUARIO
 export const añadirUsuario = async (req, res) => {
-    // Recibe el nombre, correo y contraseña del nuevo usuario
-    const {nombre, correo, password} = req.body
+    const {nombre, correo, id_rol} = req.body
 
-    // Revisa que no haya dejado ningún campo en blanco
-    if (!nombre?.trim() || !correo?.trim() || !password?.trim()) {
+    if (!nombre?.trim() || !correo?.trim() || !id_rol ) {
         return res.status(400).json({message: "missing information"})
     }
 
-    // Encripta/Esconde la contraseña para que sea segura y nadie la pueda ver
-    let hash = await bcrypt.hash(password, 10)
+        const newPassword = generatePassword.generate(
+            {
+                length: 10,
+                numbers: true,
+            }
+        )
 
-    // Guarda al nuevo usuario en la lista con su contraseña ya escondida
-    const {rows} = await client.query("INSERT INTO usuarios (nombre, correo, password) VALUES ($1, $2, $3) RETURNING *", [nombre, correo, hash])
+
+    let hash = await bcrypt.hash(newPassword, 10)
+
+    const {rows} = await client.query("INSERT INTO usuarios (nombre, correo, password, id_rol) VALUES ($1, $2, $3, $4) RETURNING *", [nombre, correo, hash, id_rol])
     
-    // Confirma que el usuario fue creado con éxito
-    res.status(201).send("añadiendo usuarios")
+    res.json(
+        {
+        password: newPassword
+    }
+)
 }
 
 // MODIFICAR UN USUARIO
@@ -102,21 +113,35 @@ export const actualizarUsuario = async (req, res) => {
     // Saca el ID del usuario que se va a cambiar desde el enlace (URL)
     const {id_usuario} = req.params
     // Recibe los nuevos datos (nombre, correo, contraseña)
-    const {nombre, correo, password} = req.body
-    
+    const {nombre, correo, password, id_rol, estado} = req.body
     // Revisa que los campos nuevos no estén vacíos
-    if (!nombre?.trim() || !correo?.trim() || !password?.trim()) {
+    if (!nombre?.trim() || !correo?.trim()) {
         return res.status(400).json({message: "missing information"})
     }
+    let datos = null;
+    let query5 = ""; 
     
     // Encripta la nueva contraseña para mantenerla segura
-    let hash = await bcrypt.hash(password, 10)
-    
+    if(password){
+        let hash = await bcrypt.hash(password, 10)
+        datos =[nombre, correo, id_usuario, estado, hash] 
+        query5 = ", password = $5"
+    } else {
+        if (!id_rol) {
+            datos = [nombre, correo, id_usuario, estado]
+            query5 = ""
+        } else {
+            datos = [nombre, correo, id_usuario, estado, id_rol]
+            query5 = ", id_rol = $5"
+        }
+         
+    }
+
     // Cambia los datos viejos por los nuevos en el usuario con ese ID
-    const {rows} = await client.query("UPDATE usuarios SET nombre = $1, correo = $2, password = $3 WHERE id_usuario = $4", [nombre, correo, hash, id_usuario])
+    const {rows} = await client.query(`UPDATE usuarios SET nombre = $1, correo = $2, estado = $4  ${query5} WHERE id_usuario = $3 RETURNING *`, [...datos])
     
     // Confirma que el usuario fue actualizado
-    res.send("actualizando usuario")
+    res.json(rows[0]);
 }
 
 // ELIMINAR UN USUARIO
@@ -134,4 +159,10 @@ export const borrarUsuario = async (req, res) => {
 
     // Devuelve los datos del usuario que acaba de borrar
     res.send(rows)
+}
+
+export const exportarRoles = async (req, res) => {
+    const {rows} = await client.query("SELECT * FROM roles where estado = true ");
+
+    res.json(rows);
 }

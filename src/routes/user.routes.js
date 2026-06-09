@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { conseguirUsuario, conseguirUsuarios, añadirUsuario, actualizarUsuario, borrarUsuario, sesionUsuario } from "../controllers/user.controller.js";
+import { conseguirUsuario, conseguirUsuarios, añadirUsuario, actualizarUsuario, borrarUsuario, sesionUsuario, exportarRoles } from "../controllers/user.controller.js";
 import { conseguirClientes, conseguirCliente, añadirCliente, borrarCliente, actualizarCliente } from "../controllers/client.controller.js";
 import { verificarToken } from "../controllers/token.controller.js";
 
@@ -19,6 +19,9 @@ router.get("/clientes", verificarToken, conseguirClientes);
 router.get("/clientes/:id_cliente", verificarToken, conseguirCliente);
 router.post("/clientes", verificarToken, añadirCliente);
 router.put("/clientes/:id_cliente", verificarToken, actualizarCliente);
-router.delete("/clientes/:id_cliente", verificarToken, borrarCliente);
+router.patch("/clientes/:id_cliente", verificarToken, borrarCliente);
+
+
+router.get("/roles", exportarRoles);
 
 export default router;
