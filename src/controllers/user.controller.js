@@ -56,7 +56,7 @@ export const sesionUsuario = async (req, res) => {
 }
 
 // VER TODOS LOS USUARIOS
-export const conseguirUsuarios = async (req, res) => {
+export const getUsuarios = async (req, res) => {
     // Trae a todos los usuarios de la lista
     const {rows} = await client.query("SELECT id_usuario, nombre, correo, id_rol, estado FROM usuarios ORDER BY created_at DESC");
 
@@ -65,7 +65,7 @@ export const conseguirUsuarios = async (req, res) => {
 }
 
 // VER UN SOLO USUARIO
-export const conseguirUsuario = async (req, res) => {
+export const getUsuario = async (req, res) => {
     // Saca el ID del usuario desde el enlace (URL)
     const {id_usuario} = req.params;
 
@@ -82,7 +82,7 @@ export const conseguirUsuario = async (req, res) => {
 }
 
 // CREAR UN NUEVO USUARIO
-export const añadirUsuario = async (req, res) => {
+export const postUsuario = async (req, res) => {
     const {nombre, correo, id_rol} = req.body
 
     if (!nombre?.trim() || !correo?.trim() || !id_rol ) {
@@ -109,7 +109,7 @@ export const añadirUsuario = async (req, res) => {
 }
 
 // MODIFICAR UN USUARIO
-export const actualizarUsuario = async (req, res) => {
+export const putUsuario = async (req, res) => {
     // Saca el ID del usuario que se va a cambiar desde el enlace (URL)
     const {id_usuario} = req.params
     // Recibe los nuevos datos (nombre, correo, contraseña)
@@ -145,7 +145,7 @@ export const actualizarUsuario = async (req, res) => {
 }
 
 // ELIMINAR UN USUARIO
-export const borrarUsuario = async (req, res) => {
+export const deleteUsuario = async (req, res) => {
     // Saca el ID del usuario que se quiere borrar desde el enlace (URL)
     const {id_usuario} = req.params
     
