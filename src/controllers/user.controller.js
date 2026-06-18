@@ -1,6 +1,6 @@
 import { client } from "../db.js";
 import bcrypt from "bcryptjs";
-import { router } from "../routes/user.routes.js";
+import { router } from "../routes/routes.js";
 import jwt from "jsonwebtoken";
 import generatePassword from "generate-password";
 
@@ -161,7 +161,7 @@ export const deleteUsuario = async (req, res) => {
     res.send(rows)
 }
 
-export const exportarRoles = async (req, res) => {
+export const getRoles = async (req, res) => {
     const {rows} = await client.query("SELECT * FROM roles where estado = true ");
 
     res.json(rows);

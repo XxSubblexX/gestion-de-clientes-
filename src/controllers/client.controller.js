@@ -1,9 +1,9 @@
 import { client } from "../db.js";
-import { router } from "../routes/user.routes.js";
+import { router } from "../routes/routes.js";
 import jwt from "jsonwebtoken";
 
 // CREAR UN NUEVO CLIENTE
-export const añadirCliente = async (req, res) => {
+export const postCliente = async (req, res) => {
     // Recibe los datos de la empresa o cliente desde el formulario (JSON)
     const { nit, razon_social, correo, telefono, estado } = req.body
     // Descubre quién es el usuario que inició sesión y está creando este cliente
@@ -27,7 +27,7 @@ export const añadirCliente = async (req, res) => {
 }
 
 // VER TODOS LOS CLIENTES DE ESTE USUARIO
-export const conseguirClientes = async (req, res) => {
+export const getClientes = async (req, res) => {
     // Averigua quién es el usuario que está pidiendo la lista
     const idUsuarioLogueado = req.user.id;
     
@@ -39,7 +39,7 @@ export const conseguirClientes = async (req, res) => {
 }
 
 // VER UN SOLO CLIENTE
-export const conseguirCliente = async (req, res) => {
+export const getCliente = async (req, res) => {
     // Saca el ID del cliente desde el enlace (URL)
     const {id_cliente} = req.params;
     // Averigua quién es el usuario que lo está buscando
@@ -58,7 +58,7 @@ export const conseguirCliente = async (req, res) => {
 }
 
 // ELIMINAR UN CLIENTE
-export const borrarCliente = async (req, res) => {
+export const patchCliente = async (req, res) => {
     
     const {estado} = req.body;
     const id_cliente = req.params.id_cliente;
@@ -72,7 +72,7 @@ export const borrarCliente = async (req, res) => {
 }
 
 // MODIFICAR UN CLIENTE
-export const actualizarCliente = async (req, res) => {
+export const putCliente = async (req, res) => {
     // Saca el ID del cliente que se va a cambiar desde el enlace (URL)
     const {id_cliente} = req.params
     // Averigua quién es el usuario dueño de este cliente

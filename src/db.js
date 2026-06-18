@@ -10,11 +10,11 @@ export const client = new Client({
 });
 
 export const minioClient = new Minio.Client({
-  endPoint: 'localhost',
-  port: 9000,
-  useSSL: false,
-  accessKey: 'admin',
-  secretKey: 'password123'
+  endPoint: process.env.IO_ENDPOINT,
+  port: process.env.IO_PORT,
+  useSSL:  false,
+  accessKey: process.env.IO_ACC_KEY,
+  secretKey: process.env.IO_SECRET_KEY
 });
 
 client.connect()

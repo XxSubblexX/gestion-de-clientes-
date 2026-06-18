@@ -2,7 +2,7 @@ import morgan from "morgan";
 import express from "express"
 import bcrypt from "bcryptjs"
 import { PORT } from "./config.js" 
-import userRoutes from "./routes/user.routes.js"
+import userRoutes from "./routes/routes.js"
 import dotenv from "dotenv";
 import cors from "cors";
 
