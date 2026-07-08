@@ -5,11 +5,6 @@ export const getProductos = async (req, res) => {
     const {rows} = await client.query("SELECT * FROM productos ORDER BY created_at DESC");
 
     for (const producto of rows) {
-  if (producto.fotografia_principal_url?.startsWith('http')) {
-    const url = new URL(producto.fotografia_principal_url)
-    producto.fotografia_principal_url = url.pathname.split('/').pop()
-  }
-
   producto.fotografia_principal_url =
     await minioClient.presignedGetObject(
       'imagenes',
@@ -37,16 +32,14 @@ export const postProducto = async (req, res) => {
     }
 
     const {rows} = await client.query("INSERT INTO productos (nombre, descripcion, caracteristicas, precio_venta, fotografia_principal_url) VALUES ($1, $2, $3, $4, $5) RETURNING *" , [nombre, descripcion, caracteristica, precio_venta, fotografia_url]);
+
     let producto = rows[0]
-    if (producto.fotografia_principal_url?.startsWith('http')) {
-    const url = new URL(producto.fotografia_principal_url)
-    producto.fotografia_principal_url = url.pathname.split('/').pop()
-  }
+  
 
   const fotografia_url_valida =
     await minioClient.presignedGetObject(
       'imagenes',
-      producto.fotografia_principal_url,
+      fotografia_url,
       604800
     )
 
@@ -57,9 +50,10 @@ export const postProducto = async (req, res) => {
 
 export const putProducto = async (req, res) => {
 
-    const {nombre, descripcion, caracteristica, precio_venta, foto, estado} = req.body
+    const {nombre, descripcion, caracteristica, precio_venta, nombreFoto, estado} = req.body
     const {id_producto} = req.params
 
+    const foto = nombreFotoñ 
     if (!nombre?.trim() || !descripcion?.trim() || !caracteristica?.trim() || !foto?.trim() ) {
         return res.status(400).json({message: "missing information"})
     }
@@ -93,13 +87,6 @@ export const deleteProducto = async (req, res) => {
 
   if (!producto) {
     return res.status(404).json({ error: "Producto no encontrado" });
-  }
-
-  // 1. Extraemos el nombre del archivo si es una URL válida
-  if (producto.fotografia_principal_url?.startsWith('http')) {
-    const urlObjeto = new URL(producto.fotografia_principal_url);
-    // Guardamos el nombre del archivo (ej: "imagen123.jpg")
-    producto.fotografia_principal_url = urlObjeto.pathname.split('/').pop();
   }
 
   // 2. Solo llamamos a MinIO si tenemos un nombre de archivo válido

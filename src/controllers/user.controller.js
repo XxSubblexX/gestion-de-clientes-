@@ -1,6 +1,5 @@
 import { client } from "../db.js";
 import bcrypt from "bcryptjs";
-import { router } from "../routes/routes.js";
 import jwt from "jsonwebtoken";
 import generatePassword from "generate-password";
 
@@ -8,7 +7,6 @@ import generatePassword from "generate-password";
 export const sesionUsuario = async (req, res) => {
     // Saca el correo y la contraseña que envió el usuario
     const {correo, password} = req.body
-    console.log({correo, password})
     // Si falta escribir el correo o la contraseña, avisa que falta información
     if (!correo?.trim() || !password?.trim()) {
             return res.status(400).json({ message: "missing information" })

@@ -5,7 +5,6 @@ export const uploadToMinio = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ message: "La imagen es obligatoria." });
         }
-        
         const foto = req.file;
         const nombreUnico = `${Date.now()}-${foto.originalname}`;
 
@@ -17,7 +16,7 @@ export const uploadToMinio = async (req, res, next) => {
             { "Content-Type": foto.mimetype }
         );
 
-        req.body.fotografia_url = `http://localhost:9000/imagenes/${nombreUnico}`;
+        req.body.fotografia_url = nombreUnico;
         
         next();
     } catch (error) {
@@ -27,14 +26,14 @@ export const uploadToMinio = async (req, res, next) => {
 };
 
 export const updateToMinio = async (req, res, next) => {
-    const { foto } = req.body
+    const { nombreFoto } = req.body
     const fotoNueva = req.file
-
+   
     if(!fotoNueva) {
         return next()
     }  else {
     // 1. Limpiar la URL para obtener solo el nombre del archivo viejo
-    const partesUrl = foto.split('/');
+    const partesUrl = nombreFoto.split('/');
     const nombreConQuery = partesUrl[partesUrl.length - 1]; 
     const nombreArchivoViejo = nombreConQuery.split('?')[0]; 
 
@@ -44,7 +43,7 @@ export const updateToMinio = async (req, res, next) => {
 
         // 3. Crear un nombre único para la foto nueva
         const nombreArchivoNuevo = `${Date.now()}-${fotoNueva.originalname}`;
-
+        console.log("FOTO:", nombreFoto);
         // 4. Subir la foto nueva usando el buffer de Multer
         await minioClient.putObject(
             'imagenes', 
@@ -55,7 +54,7 @@ export const updateToMinio = async (req, res, next) => {
         );
 
         // 5. Guardar el nuevo nombre en req.body para que llegue a tu controlador final
-        req.body.foto = nombreArchivoNuevo;
+        req.body.nombreFoto = nombreArchivoNuevo;
 
         next();
     } catch (error) {

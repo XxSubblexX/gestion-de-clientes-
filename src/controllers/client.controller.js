@@ -1,5 +1,4 @@
 import { client } from "../db.js";
-import { router } from "../routes/routes.js";
 import jwt from "jsonwebtoken";
 
 // CREAR UN NUEVO CLIENTE
@@ -16,9 +15,6 @@ export const postCliente = async (req, res) => {
 
     // Guarda al nuevo cliente en la base de datos y lo amarra al usuario logueado
     const {rows} = await client.query("INSERT INTO clientes (nit, razon_social, correo, telefono, id_usuario, estado) VALUES ($1, $2, $3,$4, $5, $6) RETURNING *", [nit, razon_social, correo, telefono, idUsuarioLogueado, estado])
-    
-    // Muestra en la consola el cliente que se acaba de crear
-    console.log(rows)
 
     // Confirma que el cliente fue añadido con éxito
     
@@ -30,9 +26,8 @@ export const postCliente = async (req, res) => {
 export const getClientes = async (req, res) => {
     // Averigua quién es el usuario que está pidiendo la lista
     const idUsuarioLogueado = req.user.id;
-    
     // Trae de la base de datos únicamente los clientes creados por este usuario
-    const {rows} = await client.query("SELECT * FROM clientes WHERE id_usuario = $1 ORDER BY created_at DESC", [idUsuarioLogueado]);
+    const {rows} = await client.query("SELECT * FROM clientes WHERE id_usuario = $1 AND estado = true  ORDER BY created_at DESC", [idUsuarioLogueado]);
     
     // Muestra la lista de sus clientes en la pantalla
     res.json(rows);
@@ -50,7 +45,7 @@ export const getCliente = async (req, res) => {
     
     // Si no encontró nada, avisa que ese cliente no existe para este usuario
     if (rows.length === 0) {
-        return res.status(404).json({message: "user not found"})
+        return res.status(404).json({message: "usuario no encontrado"})
     };
 
     // Si lo encuentra, muestra los datos del cliente en pantalla
@@ -63,7 +58,6 @@ export const patchCliente = async (req, res) => {
     const {estado} = req.body;
     const id_cliente = req.params.id_cliente;
     const id_usuario = req.user.id;
-    console.log(estado, id_cliente, id_usuario)
     const {rows} = await client.query("UPDATE clientes SET estado = $1 WHERE id_cliente = $2 AND id_usuario = $3 RETURNING *", [estado, id_cliente, id_usuario]);
 
     res.json(rows)
@@ -91,7 +85,6 @@ export const putCliente = async (req, res) => {
         [nit, razon_social, correo, telefono, estado, id_cliente, idUsuarioLogueado]
     )
     
-    console.log(rows)
 
     // Si no encontró al cliente o no le pertenece a este usuario, da error 404
     if (rowCount === 0) {
